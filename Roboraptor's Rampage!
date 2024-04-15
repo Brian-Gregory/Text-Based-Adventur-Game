@@ -1,0 +1,128 @@
+# Define the game's environment: rooms, connected paths, and items
+rooms = {
+    "Jungle Oasis": {"North": "Volcano Caverns", "East": "Dinosaur Encampment"},
+    "Volcano Caverns": {"South": "Jungle Oasis", "East": "Time Rift Chamber"},
+    "Dinosaur Encampment": {"West": "Jungle Oasis", "East": "High-Tech Laboratory"},
+    "Time Rift Chamber": {"West": "Volcano Caverns", "South": "Mystic Altar"},
+    "High-Tech Laboratory": {"West": "Dinosaur Encampment", "South": "Avian Canyon"},
+    "Mystic Altar": {"North": "Time Rift Chamber", "East": "Megafauna Meadows"},
+    "Avian Canyon": {"North": "High-Tech Laboratory"},
+    "Megafauna Meadows": {"West": "Mystic Altar", "East": "Cretaceous Cliffs"},
+    "Cretaceous Cliffs": {"West": "Megafauna Meadows"}
+}
+
+items = {
+    "Volcano Caverns": "Dino-Scanner! It can detect nearby dinosaurs, including Roboraptor!",
+    "Dinosaur Encampment": "Enchanted Grimoire! A pulsating tome of ancient magic, whispering "
+                           "forgotten incantations and prehistoric knowledge.",
+    "Time Rift Chamber": "Portal Beacon! It pulses with temporal energy, guiding travelers "
+                         "through the vast expanses of time and space.",
+    "High-Tech Laboratory": "Energy Blaster! A lethal instrument of destruction.",
+    "Cretaceous Cliffs": "Prehistoric Relic! A primal artifact pulsing with ancient "
+                         "power, beckoning those bold enough to wield its might!"
+}
+
+task_descriptions = {
+    "Volcano Caverns": ["Investigate a shiny object on the ground", "Examine an odd-looking rock formation"],
+    "Dinosaur Encampment": ["Pick up a mysterious book lying on a rock", "Trace the path of ancient footprints"],
+    "Time Rift Chamber": ["Examine a strange device emitting a faint glow",
+                          "Study a series of intricate carvings on the wall"],
+    "High-Tech Laboratory": ["Take an advanced weapon system you find", "Use a computer terminal with flashing lights"],
+    "Cretaceous Cliffs": ["Search for the powerful artifact you sense nearby",
+                          "Rearrange a pattern of stones on the wall"],
+}
+
+outcome_messages = {
+    "Volcano Caverns": ["It's a quarter from the early 20s.",
+                        "The rock formation crumbles revealing a strange device!"],
+    "Dinosaur Encampment": ["It's a Playboy from 1973! How did this get here? I better hold on to this. "
+                            "Item added to secret inventory.",
+                            "You follow the footprints into the forest and discover a mysterious book!"],
+    "Time Rift Chamber": ["Well that was an easy one!",
+                          "I wonder who could have made these carvings. They seem ancient. Weird."],
+    "High-Tech Laboratory": ["This is just a prototype! Looks cool, but the damn thing is useless.",
+                             "The terminal activates a hidden compartment, presenting you with some type of futuristic "
+                             "weapon! Lock and load, baby!"],
+    "Cretaceous Cliffs": ["Such an eerie sensation... How did I know this was here? What unseen hand guides my steps?",
+                          "Nothing happened. Strange. It worked in Pokemon."],
+}
+
+villain = {
+    "name": "Roboraptor",
+    "location": "Megafauna Meadows"
+}
+
+current_room = "Jungle Oasis"
+collected_items = set()
+
+
+def perform_tasks(room):
+    if room in items and items[room] in collected_items:
+        print("It seems there's nothing left of interest in this room.")
+        return  # Exit if item already collected
+
+    correct_option = {
+        "Volcano Caverns": 2,
+        "Dinosaur Encampment": 2,
+        "Time Rift Chamber": 1,
+        "High-Tech Laboratory": 2,
+        "Cretaceous Cliffs": 1,
+    }.get(room)
+
+    print(f"In the {room}, you can:")
+    for i, task in enumerate(task_descriptions[room], start=1):
+        print(f"{i}. {task}")
+    print("What do you want to do?")
+
+    while True:
+        choice = input("Choose 1 or 2: ").strip()
+        if choice not in ['1', '2']:
+            print("Really? There's only 2 options, dude.")
+            continue
+        choice = int(choice)
+        print(outcome_messages[room][choice - 1])
+        if choice == correct_option:
+            if room in items and items[room] not in collected_items:
+                collected_items.add(items[room])
+                print(f"You found the {items[room]}! It is now in your inventory.")
+            break
+        else:
+            print("Let's look around a bit more.")
+            continue
+
+
+def check_villain_encounter():
+    if current_room == villain["location"]:
+        if "Energy Blaster! A lethal instrument of destruction." in collected_items:
+            print(f"You encounter {villain['name']} but have the Energy Blaster! "
+                  "Suck on this, robo-bitch! You killed Roboraptor and can continue your quest.")
+            return False  # Allows the game to continue
+        else:
+            print(f"You encounter {villain['name']}. Facing the Roboraptor without a weapon, "
+                  "you are swiftly overwhelmed by its relentless onslaught. Your journey ends here, "
+                  "a cautionary tale of unpreparedness in the face of mechanical menace. Game Over!")
+            return True  # Ends the game
+    return False  # No encounter with the villain
+
+
+# Main game loop
+while True:
+    print(f"You are in the {current_room}.")
+
+    if current_room in task_descriptions:
+        perform_tasks(current_room)
+
+    if check_villain_encounter():
+        break
+
+    if len(collected_items) == len(items):
+        print("Congratulations! You have collected all items. You win the game!")
+        break
+
+    valid_moves = rooms[current_room].keys()
+    move = input("Available moves: " + ", ".join(valid_moves) + ". Choose a direction to move: ").capitalize()
+
+    if move in valid_moves:
+        current_room = rooms[current_room][move]
+    else:
+        print("Can't do that. Let's learn to read together.")
